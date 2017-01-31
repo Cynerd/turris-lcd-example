@@ -1,0 +1,3 @@
+[submodule "liblcd"]
+	path = liblcd
+	url = https://github.com/Cynerd/liquidcrystal-i2c.git
