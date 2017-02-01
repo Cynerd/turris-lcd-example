@@ -18,7 +18,7 @@ ifeq ($(DEBUG),yes)
 CFLAGS += -ggdb -DDEBUG
 endif
 CFLAGS += -Wall
-CFLAGS += -Iliblcd -include $(O)/build/config.h
+CFLAGS += -Iliblcd
 
 # Apply CPREFIX
 CXX:=$(CPREFIX)$(CXX)
@@ -76,15 +76,10 @@ $(O)/turris-lcd: $(OBJ) liblcd/libliquidcrystali2c.a
 	@echo " LD    $@"
 	$(Q)$(CXX) $(LDFLAGS) $^ -o $@
 
-$(OBJ): $(O)/build/%.o: src/%.cpp $(O)/build/config.h
+$(OBJ): $(O)/build/%.o: src/%.cpp
 	@mkdir -p "$(@D)"
 	@echo " CXX   $@"
 	$(Q)$(CXX) -c $(CFLAGS) $< -o $@
-
-$(O)/build/config.h: $(O)/.config
-	@mkdir -p "$(@D)"
-	@echo " CONF  $@"
-	$(Q)$(O)/configure --op-h > $@
 
 liblcd/libliquidcrystali2c.a:
 	$(Q)$(MAKE) -C liblcd static
