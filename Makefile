@@ -1,4 +1,4 @@
-MAKEFLAGS += --no-builtin-rules
+#MAKEFLAGS += --no-builtin-rules
 
 # This variable can be overwritten to show executed commands
 Q ?= @
@@ -56,6 +56,7 @@ prune:: clean
 	$(Q)$(RM) $(O)/.config $(O)/.config.mk 
 	@echo " CLEAN liblcd"
 	$(Q)$(MAKE) -C liblcd clean
+	$(Q)$(RM) liblcd/libliquidcrystali2c.a
 
 ## Building targets ##
 ifeq (,$(filter clean prune help \
