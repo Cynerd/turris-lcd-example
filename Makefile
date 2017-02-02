@@ -17,20 +17,25 @@ all: $(O)/turris-lcd
 ifeq ($(DEBUG),yes)
 CFLAGS += -ggdb -DDEBUG
 endif
-CFLAGS += -Wall
-CFLAGS += -Iliblcd
+CFLAGS += -Isrc/liblcd
 
 # Apply CPREFIX
 CXX:=$(CPREFIX)$(CXX)
 
 ### Source files list ###########################
-SRC = turris-lcd.cpp
+SRC = turris-lcd.cpp \
+	  liblcd/I2CIO.cpp \
+	  liblcd/LCD.cpp \
+	  liblcd/LiquidCrystal.cpp \
+	  liblcd/LiquidCrystal_I2C.cpp \
+	  liblcd/smbus.c
 ### End of source files list ####################
 
-CSRC = $(patsubst %,src/%,$(filter %.cpp,$(SRC)))
+CPPSRC = $(patsubst %,src/%,$(filter %.cpp,$(SRC)))
+CSRC = $(patsubst %,src/%,$(filter %.c,$(SRC)))
 
-OBJ = $(patsubst src/%.cpp,$(O)/build/%.o,$(CSRC))
-DEP = $(patsubst src/%.cpp,$(O)/build/%.d,$(CSRC))
+CPPOBJ = $(patsubst src/%.cpp,$(O)/build/%.o,$(CPPSRC))
+COBJ = $(patsubst src/%.c,$(O)/build/%.o,$(CSRC))
 
 .PHONY: help
 help:
@@ -54,35 +59,25 @@ clean::
 prune:: clean
 	@echo " CLEAN configuration"
 	$(Q)$(RM) $(O)/.config $(O)/.config.mk 
-	@echo " CLEAN liblcd"
-	$(Q)$(MAKE) -C liblcd clean
-	$(Q)$(RM) liblcd/libliquidcrystali2c.a
 
 ## Building targets ##
 ifeq (,$(filter clean prune help \
 	  ,$(MAKECMDGOALS))) # Ignore build targets if goal is not building
 
-ifeq ($(DEBUG),yes)
--include $(DEP) # If developing, use dependencies from source files
-.PHONY: dependency dep
-dependency dep:: $(DEP)
-$(DEP): $(O)/build/%.d: src/%.cpp
-	@mkdir -p "$(@D)"
-	@echo " DEP   $@"
-	$(Q)$(CXX) -MM -MG -MT '$*.o $@' $(CFLAGS) $< -MF $@
-endif # DEBUG
-
-$(O)/turris-lcd: $(OBJ) liblcd/libliquidcrystali2c.a
+$(O)/turris-lcd: $(COBJ) $(CPPOBJ)
 	@echo " LD    $@"
 	$(Q)$(CXX) $(LDFLAGS) $^ -o $@
 
-$(OBJ): $(O)/build/%.o: src/%.cpp
+# We use CXX intensionally even on C files
+$(COBJ): $(O)/build/%.o: src/%.c
 	@mkdir -p "$(@D)"
 	@echo " CXX   $@"
 	$(Q)$(CXX) -c $(CFLAGS) $< -o $@
 
-liblcd/libliquidcrystali2c.a:
-	$(Q)$(MAKE) -C liblcd static
+$(CPPOBJ): $(O)/build/%.o: src/%.cpp
+	@mkdir -p "$(@D)"
+	@echo " CXX   $@"
+	$(Q)$(CXX) -c $(CFLAGS) $< -o $@
 endif
 
 ## Configuation files ##
