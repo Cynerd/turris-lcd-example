@@ -32,12 +32,12 @@ echo "<!DOCTYPE html>
 </head>
 	<h3>Thank you for your message</h3>
 	<p>$(cat<<EOFIKA
-$MESSAGE
+${MESSAGE:0:60}
 EOFIKA
 )
 </p>
 </html>"
 
 cat >/tmp/turris-lcd <<EOFIKA
-$MESSAGE
+${MESSAGE:0:60}
 EOFIKA
